@@ -14,10 +14,28 @@ const LOAN_TERM_MONTHS = 360; // 30 Years
 const INTEREST_RATE = 7.0; // 7.0% baseline interest rate
 const ASSESSMENT_RATE_BUFFER = 3.0; // 3.0% buffer added to interest rates
 
+// Endpoints for API
+const API_BASE_URL = "http://localhost:3000;"
+const PAT = "pat_abcdefghijklmnopqrstuvwxyz0123456789";
+
 // Legacy placeholder functions to replace with API calls
-function getTax(income) {
-    // REPLACE THIS
-    // Write your TAX API call code here.
+async function getTax(income) {
+    // Send API request
+    const response = await fetch(`${API_BASE_URL}/api/tax?income=${income}`,
+        {
+            headers: {
+                Authorization: `Bearer ${PAT}`
+            }
+        }
+    );
+    
+    // Handle error
+    if (!response.ok) {
+        throw new Error (`Tax API request failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+
     return Math.round(income * 0.25);
 }
 
