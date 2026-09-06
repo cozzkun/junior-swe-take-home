@@ -39,10 +39,24 @@ async function getTax(income) {
     return Math.round(income * 0.25);
 }
 
-function getHEM(income, dependents) {
-    // REPLACE THIS
-    // Write your HEM API call code here.
-    return 2000 + (dependents * 400);
+async function getHEM(income, dependents) {
+    // Add income and dependents as parameters
+    const response = await fetch(
+        `${API_BASE_URL}/api/hem?income=${income}&dependents=${dependents}`,
+        {
+            headers: {
+                Authorization: `Bearer ${PAT}`,
+            },
+        },
+    );
+
+    if (!response.ok) {
+        throw new Error(`HEM API request failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    return data.hem; 
 }
 
 /**
