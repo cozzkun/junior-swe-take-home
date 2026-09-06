@@ -14,7 +14,7 @@ const LOAN_TERM_MONTHS = 360; // 30 Years
 const INTEREST_RATE = 7.0; // 7.0% baseline interest rate
 const ASSESSMENT_RATE_BUFFER = 3.0; // 3.0% buffer added to interest rates
 
-// Endpoints for API
+// Storing API address and PAT
 const API_BASE_URL = "http://localhost:3000;"
 const PAT = "pat_abcdefghijklmnopqrstuvwxyz0123456789";
 
@@ -36,7 +36,7 @@ async function getTax(income) {
 
     const data = await response.json();
 
-    return Math.round(income * 0.25);
+    return data.tax;
 }
 
 async function getHEM(income, dependents) {
@@ -62,13 +62,15 @@ async function getHEM(income, dependents) {
 /**
  * Calculates the total borrowing power amount and the monthly repayment configuration
  */
-function calculateBorrowingPower(income, dependents, expenses, creditLimits, annualAssessmentRate) {
+
+// Adjust code for async
+async function calculateBorrowingPower(income, dependents, expenses, creditLimits, annualAssessmentRate) {
     // 1. Calculate Net Monthly Income after tax deductions
-    const annualTax = getTax(income);
+    const annualTax = await getTax(income);
     const netMonthlyIncome = (income - annualTax) / 12;
 
     // 2. Determine living expenses (User declared expenses vs HEM baseline, whichever is higher)
-    const baselineHEM = getHEM(income, dependents);
+    const baselineHEM = await getHEM(income, dependents);
     const totalLivingExpenses = Math.max(expenses, baselineHEM);
 
     // 3. Calculate credit card liability (~3% of total limits)
@@ -105,12 +107,13 @@ function runConsoleMode() {
     rl.question("Gross Annual Income: $", (income) => {
         rl.question("Number of Dependents: ", (dependents) => {
             rl.question("Declared Monthly Expenses: $", (expenses) => {
-                rl.question("Total Credit Card Limits: $", (creditLimits) => {
+                rl.question("Total Credit Card Limits: $", async (creditLimits) => {
                     
                     // Banks assess loans using base rate + buffer for safety
                     const assessmentRate = INTEREST_RATE + ASSESSMENT_RATE_BUFFER;
 
-                    const result = calculateBorrowingPower(
+                    try {
+                    const result = await calculateBorrowingPower(
                         parseFloat(income),
                         parseInt(dependents),
                         parseFloat(expenses),
@@ -121,6 +124,9 @@ function runConsoleMode() {
                     console.log("\n--- Calculation Summary ---");
                     console.log(`Maximum Borrowing Power at ${INTEREST_RATE}%: $${result.maxLoanAmount.toLocaleString()}`);
                     console.log(`Assumed Monthly Mortgage Repayment: $${result.monthlyRepayment.toLocaleString()} over 30 years`);
+                } catch (error) {
+                    console.error(`Unable to calculate: ${error.message}`);
+                }  
                     
                     rl.close();
                 });
@@ -133,4 +139,4 @@ if (require.main === module) {
     runConsoleMode();
 }
 
-module.exports = { calculateBorrowingPower };
+module.exports = { calculateBorrowingPower, getTax, getHEM };
