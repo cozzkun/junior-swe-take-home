@@ -15,7 +15,7 @@ const INTEREST_RATE = 7.0; // 7.0% baseline interest rate
 const ASSESSMENT_RATE_BUFFER = 3.0; // 3.0% buffer added to interest rates
 
 // Storing API address and PAT
-const API_BASE_URL = "http://localhost:3000;";
+const API_BASE_URL = "http://localhost:3000";
 const PAT = "pat_abcdefghijklmnopqrstuvwxyz0123456789";
 
 // Legacy placeholder functions to replace with API calls
