@@ -3,10 +3,14 @@
  */
 
 const assert = require("assert");
-const { calculateBorrowingPower, getHEM } = require("./borrowingCalculator");
+const {
+  calculateBorrowingPower,
+  getHEM,
+  getTax,
+} = require("./borrowingCalculator");
 
-describe("Borrowing Power Calculator Tests", () => {
-  it("Test for calculateBorrowingPower", async () => {
+describe("Borrowing Power Tests", () => {
+  it("Calculate borrowing power for standard value", async () => {
     const result = await calculateBorrowingPower(120000, 2, 1400, 20000, 7.5);
     assert.ok(
       result.maxLoanAmount > 0,
@@ -28,31 +32,48 @@ describe("Borrowing Power Calculator Tests", () => {
       /Inputs cannot be negative/,
     );
   });
+});
 
-  describe("HEM income level tests", () => {
-    const testCases = [
-      { income: 30000, dependents: 0, expectedHEM: 1600 },
-      { income: 30000, dependents: 1, expectedHEM: 2100 },
-      { income: 30000, dependents: 2, expectedHEM: 2500 },
-      { income: 30000, dependents: 3, expectedHEM: 2800 },
+describe("HEM by Income Level Tests", () => {
+  const testCases = [
+    { income: 30000, dependents: 0, expectedHEM: 1600 },
+    { income: 30000, dependents: 1, expectedHEM: 2100 },
+    { income: 30000, dependents: 2, expectedHEM: 2500 },
+    { income: 30000, dependents: 3, expectedHEM: 2800 },
 
-      { income: 70000, dependents: 0, expectedHEM: 2200 },
-      { income: 70000, dependents: 1, expectedHEM: 2700 },
-      { income: 70000, dependents: 2, expectedHEM: 3100 },
-      { income: 70000, dependents: 3, expectedHEM: 3500 },
+    { income: 70000, dependents: 0, expectedHEM: 2200 },
+    { income: 70000, dependents: 1, expectedHEM: 2700 },
+    { income: 70000, dependents: 2, expectedHEM: 3100 },
+    { income: 70000, dependents: 3, expectedHEM: 3500 },
 
-      { income: 160000, dependents: 0, expectedHEM: 2600 },
-      { income: 160000, dependents: 1, expectedHEM: 3100 },
-      { income: 160000, dependents: 2, expectedHEM: 3600 },
-      { income: 160000, dependents: 3, expectedHEM: 4100 },
-    ];
+    { income: 160000, dependents: 0, expectedHEM: 2600 },
+    { income: 160000, dependents: 1, expectedHEM: 3100 },
+    { income: 160000, dependents: 2, expectedHEM: 3600 },
+    { income: 160000, dependents: 3, expectedHEM: 4100 },
+  ];
 
-    testCases.forEach(({ income, dependents, expectedHEM }) => {
-      it(`returns ${expectedHEM} for income ${income} with ${dependents} dependents`, async () => {
-        const result = await getHEM(income, dependents);
+  testCases.forEach(({ income, dependents, expectedHEM }) => {
+    it(`returns ${expectedHEM} for income ${income} with ${dependents} dependents`, async () => {
+      const result = await getHEM(income, dependents);
 
-        assert.strictEqual(result, expectedHEM);
-      });
+      assert.strictEqual(result, expectedHEM);
     });
+  });
+});
+
+describe("Tax by Income Level Tests", () => {
+  it("Test for low income tax", async () => {
+    const result = await getTax(25000);
+    assert.strictEqual(result, 750);
+  });
+
+  it("Test for medium income tax", async () => {
+    const result = await getTax(55000);
+    assert.strictEqual(result, 5750);
+  });
+
+  it("Test for high income tax", async () => {
+    const result = await getTax(105000);
+    assert.strictEqual(result, 18750);
   });
 });
