@@ -20,10 +20,6 @@ const PAT = "pat_abcdefghijklmnopqrstuvwxyz0123456789";
 
 // Legacy placeholder functions to replace with API calls
 async function getTax(income) {
-  if (income < 0) {
-    throw new Error("Inputs cannot be negative");
-  }
-
   // Send API request
   const response = await fetch(`${API_BASE_URL}/api/tax?income=${income}`, {
     headers: {
@@ -43,11 +39,6 @@ async function getTax(income) {
 
 async function getHEM(income, dependents) {
   // Add income and dependents as parameters
-
-  if (income < 0 || dependents < 0) {
-    throw new Error("Inputs cannot be negative");
-  }
-
   const response = await fetch(
     `${API_BASE_URL}/api/hem?income=${income}&dependents=${dependents}`,
     {
