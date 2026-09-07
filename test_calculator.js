@@ -59,21 +59,33 @@ describe("HEM by Income Level Tests", () => {
       assert.strictEqual(result, expectedHEM);
     });
   });
+
+  it("Throw error for negative income", async () => {
+    await assert.rejects(getHEM(-20000, 1), /Inputs cannot be negative/);
+  });
+
+  it("Throw error for negative dependents", async () => {
+    await assert.rejects(getHEM(20000, -1), /Inputs cannot be negative/);
+  });
 });
 
 describe("Tax by Income Level Tests", () => {
-  it("Test for low income tax", async () => {
+  it("Calculate tax for low income", async () => {
     const result = await getTax(25000);
     assert.strictEqual(result, 750);
   });
 
-  it("Test for medium income tax", async () => {
+  it("Calculate tax for medium income", async () => {
     const result = await getTax(55000);
     assert.strictEqual(result, 5750);
   });
 
-  it("Test for high income tax", async () => {
+  it("Calculate tax for high income", async () => {
     const result = await getTax(105000);
     assert.strictEqual(result, 18750);
+  });
+
+  it("Throw error for negative income", async () => {
+    await assert.rejects(getHEM(-20000), /Inputs cannot be negative/);
   });
 });
