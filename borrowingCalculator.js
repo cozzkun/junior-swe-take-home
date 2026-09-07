@@ -1,10 +1,10 @@
 /**
  * Borrowing Power Calculator
- * 
- * Gen's incomplete prototype. 
+ *
+ * Gen's incomplete prototype.
  * This currently calculates what a user can borrow over 30 years.
- * Currently this code uses placeholder methods for Tax and HEM values. 
- * 
+ * Currently this code uses placeholder methods for Tax and HEM values.
+ *
  * TODO: Refactor the code to pull Tax and HEM values from an API call.
  * A server.js has been provided to supply these values.
  */
@@ -15,48 +15,46 @@ const INTEREST_RATE = 7.0; // 7.0% baseline interest rate
 const ASSESSMENT_RATE_BUFFER = 3.0; // 3.0% buffer added to interest rates
 
 // Storing API address and PAT
-const API_BASE_URL = "http://localhost:3000;"
+const API_BASE_URL = "http://localhost:3000;";
 const PAT = "pat_abcdefghijklmnopqrstuvwxyz0123456789";
 
 // Legacy placeholder functions to replace with API calls
 async function getTax(income) {
-    // Send API request
-    const response = await fetch(`${API_BASE_URL}/api/tax?income=${income}`,
-        {
-            headers: {
-                Authorization: `Bearer ${PAT}`
-            }
-        }
-    );
-    
-    // Handle error
-    if (!response.ok) {
-        throw new Error (`Tax API request failed: ${response.status}`);
-    }
+  // Send API request
+  const response = await fetch(`${API_BASE_URL}/api/tax?income=${income}`, {
+    headers: {
+      Authorization: `Bearer ${PAT}`,
+    },
+  });
 
-    const data = await response.json();
+  // Handle error
+  if (!response.ok) {
+    throw new Error(`Tax API request failed: ${response.status}`);
+  }
 
-    return data.tax;
+  const data = await response.json();
+
+  return data.tax;
 }
 
 async function getHEM(income, dependents) {
-    // Add income and dependents as parameters
-    const response = await fetch(
-        `${API_BASE_URL}/api/hem?income=${income}&dependents=${dependents}`,
-        {
-            headers: {
-                Authorization: `Bearer ${PAT}`,
-            },
-        },
-    );
+  // Add income and dependents as parameters
+  const response = await fetch(
+    `${API_BASE_URL}/api/hem?income=${income}&dependents=${dependents}`,
+    {
+      headers: {
+        Authorization: `Bearer ${PAT}`,
+      },
+    },
+  );
 
-    if (!response.ok) {
-        throw new Error(`HEM API request failed: ${response.status}`);
-    }
+  if (!response.ok) {
+    throw new Error(`HEM API request failed: ${response.status}`);
+  }
 
-    const data = await response.json();
+  const data = await response.json();
 
-    return data.hem; 
+  return data.hem;
 }
 
 /**
@@ -64,79 +62,105 @@ async function getHEM(income, dependents) {
  */
 
 // Adjust code for async
-async function calculateBorrowingPower(income, dependents, expenses, creditLimits, annualAssessmentRate) {
-    // 1. Calculate Net Monthly Income after tax deductions
-    const annualTax = await getTax(income);
-    const netMonthlyIncome = (income - annualTax) / 12;
+async function calculateBorrowingPower(
+  income,
+  dependents,
+  expenses,
+  creditLimits,
+  annualAssessmentRate,
+) {
+  // Reject negative values
+  if (
+    income < 0 ||
+    dependents < 0 ||
+    expenses < 0 ||
+    creditLimits < 0 ||
+    annualAssessmentRate < 0
+  ) {
+    throw new Error("Inputs cannot be negative");
+  }
 
-    // 2. Determine living expenses (User declared expenses vs HEM baseline, whichever is higher)
-    const baselineHEM = await getHEM(income, dependents);
-    const totalLivingExpenses = Math.max(expenses, baselineHEM);
+  // 1. Calculate Net Monthly Income after tax deductions
+  const annualTax = await getTax(income);
+  const netMonthlyIncome = (income - annualTax) / 12;
 
-    // 3. Calculate credit card liability (~3% of total limits)
-    const creditCardLiability = creditLimits * 0.03;
+  // 2. Determine living expenses (User declared expenses vs HEM baseline, whichever is higher)
+  const baselineHEM = await getHEM(income, dependents);
+  const totalLivingExpenses = Math.max(expenses, baselineHEM);
 
-    // 4. Calculate monthly repayment capacity
-    const maxMonthlyRepayment = netMonthlyIncome - totalLivingExpenses - creditCardLiability;
+  // 3. Calculate credit card liability (~3% of total limits)
+  const creditCardLiability = creditLimits * 0.03;
 
-    // Return early if user cannot afford a loan at all
-    if (maxMonthlyRepayment <= 0) {
-        return { maxLoanAmount: 0, monthlyRepayment: 0 };
-    }
+  // 4. Calculate monthly repayment capacity
+  const maxMonthlyRepayment =
+    netMonthlyIncome - totalLivingExpenses - creditCardLiability;
 
-    // 5. Calculate the monthly interest rate
-    const monthlyRate = (annualAssessmentRate / 100) / 12;
+  // Return early if user cannot afford a loan at all
+  if (maxMonthlyRepayment <= 0) {
+    return { maxLoanAmount: 0, monthlyRepayment: 0 };
+  }
 
-    // 6. Calculate maximum borrowing power using the following formula:
-    // P = M * (1 - (1 + R)^-N) / R
-    const maxLoanAmount = maxMonthlyRepayment * ((1 - Math.pow(1 + monthlyRate, - LOAN_TERM_MONTHS)) / monthlyRate);
+  // 5. Calculate the monthly interest rate
+  const monthlyRate = annualAssessmentRate / 100 / 12;
 
-    return {
-        maxLoanAmount: Number(maxLoanAmount.toFixed(2)),
-        monthlyRepayment: Number(maxMonthlyRepayment.toFixed(2))
-    };
+  // 6. Calculate maximum borrowing power using the following formula:
+  // P = M * (1 - (1 + R)^-N) / R
+  const maxLoanAmount =
+    maxMonthlyRepayment *
+    ((1 - Math.pow(1 + monthlyRate, -LOAN_TERM_MONTHS)) / monthlyRate);
+
+  return {
+    maxLoanAmount: Number(maxLoanAmount.toFixed(2)),
+    monthlyRepayment: Number(maxMonthlyRepayment.toFixed(2)),
+  };
 }
 
 function runConsoleMode() {
-    const readline = require('readline');
-    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  const readline = require("readline");
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
 
-    console.log("Mortgage Borrowing Power Calculator");
-    console.log("===================================");
+  console.log("Mortgage Borrowing Power Calculator");
+  console.log("===================================");
 
-    rl.question("Gross Annual Income: $", (income) => {
-        rl.question("Number of Dependents: ", (dependents) => {
-            rl.question("Declared Monthly Expenses: $", (expenses) => {
-                rl.question("Total Credit Card Limits: $", async (creditLimits) => {
-                    
-                    // Banks assess loans using base rate + buffer for safety
-                    const assessmentRate = INTEREST_RATE + ASSESSMENT_RATE_BUFFER;
+  rl.question("Gross Annual Income: $", (income) => {
+    rl.question("Number of Dependents: ", (dependents) => {
+      rl.question("Declared Monthly Expenses: $", (expenses) => {
+        rl.question("Total Credit Card Limits: $", async (creditLimits) => {
+          // Banks assess loans using base rate + buffer for safety
+          const assessmentRate = INTEREST_RATE + ASSESSMENT_RATE_BUFFER;
 
-                    try {
-                    const result = await calculateBorrowingPower(
-                        parseFloat(income),
-                        parseInt(dependents),
-                        parseFloat(expenses),
-                        parseFloat(creditLimits),
-                        assessmentRate
-                    );
+          try {
+            const result = await calculateBorrowingPower(
+              parseFloat(income),
+              parseInt(dependents),
+              parseFloat(expenses),
+              parseFloat(creditLimits),
+              assessmentRate,
+            );
 
-                    console.log("\n--- Calculation Summary ---");
-                    console.log(`Maximum Borrowing Power at ${INTEREST_RATE}%: $${result.maxLoanAmount.toLocaleString()}`);
-                    console.log(`Assumed Monthly Mortgage Repayment: $${result.monthlyRepayment.toLocaleString()} over 30 years`);
-                } catch (error) {
-                    console.error(`Unable to calculate: ${error.message}`);
-                }  
-                    
-                    rl.close();
-                });
-            });
+            console.log("\n--- Calculation Summary ---");
+            console.log(
+              `Maximum Borrowing Power at ${INTEREST_RATE}%: $${result.maxLoanAmount.toLocaleString()}`,
+            );
+            console.log(
+              `Assumed Monthly Mortgage Repayment: $${result.monthlyRepayment.toLocaleString()} over 30 years`,
+            );
+          } catch (error) {
+            console.error(`Unable to calculate: ${error.message}`);
+          }
+
+          rl.close();
         });
+      });
     });
+  });
 }
 
 if (require.main === module) {
-    runConsoleMode();
+  runConsoleMode();
 }
 
 module.exports = { calculateBorrowingPower, getTax, getHEM };
