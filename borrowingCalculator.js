@@ -3,10 +3,6 @@
  *
  * Gen's incomplete prototype.
  * This currently calculates what a user can borrow over 30 years.
- * Currently this code uses placeholder methods for Tax and HEM values.
- *
- * TODO: Refactor the code to pull Tax and HEM values from an API call.
- * A server.js has been provided to supply these values.
  */
 
 // Global constant for mortgage simulation
@@ -18,42 +14,35 @@ const ASSESSMENT_RATE_BUFFER = 3.0; // 3.0% buffer added to interest rates
 const API_BASE_URL = "http://localhost:3000";
 const PAT = "pat_abcdefghijklmnopqrstuvwxyz0123456789";
 
-// Legacy placeholder functions to replace with API calls
-async function getTax(income) {
-  // Send API request
-  const response = await fetch(`${API_BASE_URL}/api/tax?income=${income}`, {
+//Shared API call function
+async function fetchApiData(url, apiName) {
+  const response = await fetch(url, {
     headers: {
       Authorization: `Bearer ${PAT}`,
     },
   });
 
-  // Handle error
   if (!response.ok) {
-    throw new Error(`Tax API request failed: ${response.status}`);
+    throw new Error(`${apiName} API request failed: ${response.status}`);
   }
 
-  const data = await response.json();
+  return await response.json();
+}
 
+// Call for getTax and getHEM using shared function
+async function getTax(income) {
+  const data = await fetchApiData(
+    `${API_BASE_URL}/api/tax?income=${income}`,
+    "Tax",
+  );
   return data.tax;
 }
 
 async function getHEM(income, dependents) {
-  // Add income and dependents as parameters
-  const response = await fetch(
+  const data = await fetchApiData(
     `${API_BASE_URL}/api/hem?income=${income}&dependents=${dependents}`,
-    {
-      headers: {
-        Authorization: `Bearer ${PAT}`,
-      },
-    },
+    "HEM",
   );
-
-  if (!response.ok) {
-    throw new Error(`HEM API request failed: ${response.status}`);
-  }
-
-  const data = await response.json();
-
   return data.hem;
 }
 
@@ -61,7 +50,6 @@ async function getHEM(income, dependents) {
  * Calculates the total borrowing power amount and the monthly repayment configuration
  */
 
-// Adjust code for async
 async function calculateBorrowingPower(
   income,
   dependents,
@@ -163,4 +151,4 @@ if (require.main === module) {
   runConsoleMode();
 }
 
-module.exports = { calculateBorrowingPower, getTax, getHEM };
+module.exports = { calculateBorrowingPower, getTax, getHEM, fetchApiData };

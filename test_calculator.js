@@ -7,20 +7,21 @@ const {
   calculateBorrowingPower,
   getHEM,
   getTax,
+  fetchApiData,
 } = require("./borrowingCalculator");
 
 describe("Borrowing Power Tests", () => {
-  it("Calculate borrowing power for standard value", async () => {
+  it("calculate borrowing power for standard value", async () => {
     const result = await calculateBorrowingPower(120000, 2, 1400, 20000, 7.5);
     assert.ok(
       result.maxLoanAmount > 0,
-      "Should yield a positive borrowing power amount",
+      "should yield a positive borrowing power amount",
     );
     assert.strictEqual(result.monthlyRepayment, 4300);
     assert.strictEqual(result.maxLoanAmount, 614975.8);
   });
 
-  it("Return 0 when there is no borrowing capacity", async () => {
+  it("return 0 when there is no borrowing capacity", async () => {
     const result = await calculateBorrowingPower(30000, 3, 4000, 5000, 7.5);
     assert.strictEqual(result.maxLoanAmount, 0);
     assert.strictEqual(result.monthlyRepayment, 0);
@@ -35,7 +36,7 @@ describe("Borrowing Power Tests", () => {
   ];
 
   negativeValues.forEach(({ name, values }) => {
-    it(`Throw error for negative ${name}`, async () => {
+    it(`throw error for negative ${name}`, async () => {
       await assert.rejects(
         calculateBorrowingPower(...values),
         /Inputs cannot be negative/,
@@ -72,18 +73,34 @@ describe("HEM by Income Level Tests", () => {
 });
 
 describe("Tax by Income Level Tests", () => {
-  it("Calculate tax for low income", async () => {
+  it("calculate tax for low income", async () => {
     const result = await getTax(25000);
     assert.strictEqual(result, 750);
   });
 
-  it("Calculate tax for medium income", async () => {
+  it("calculate tax for medium income", async () => {
     const result = await getTax(55000);
     assert.strictEqual(result, 5750);
   });
 
-  it("Calculate tax for high income", async () => {
+  it("calculate tax for high income", async () => {
     const result = await getTax(105000);
     assert.strictEqual(result, 18750);
+  });
+});
+
+describe("API Request Tests", () => {
+  it("identifies a failed HEM API request", async () => {
+    await assert.rejects(
+      fetchApiData("http://localhost:3000/api/fake", "HEM"),
+      /HEM API request failed/,
+    );
+  });
+
+  it("identifies a failed Tax API request", async () => {
+    await assert.rejects(
+      fetchApiData("http://localhost:3000/api/fake", "Tax"),
+      /Tax API request failed/,
+    );
   });
 });
