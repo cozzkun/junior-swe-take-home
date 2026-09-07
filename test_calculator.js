@@ -21,4 +21,11 @@ describe("Borrowing Calculator Tests", () => {
     assert.strictEqual(result.maxLoanAmount, 0);
     assert.strictEqual(result.monthlyRepayment, 0);
   });
+
+  it("Throw error for negative inputs", async () => {
+    await assert.rejects(
+      calculateBorrowingPower(-120000, 2, 1400, 20000, 7.5),
+      /Inputs cannot be negative/,
+    );
+  });
 });
