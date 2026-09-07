@@ -26,39 +26,21 @@ describe("Borrowing Power Tests", () => {
     assert.strictEqual(result.monthlyRepayment, 0);
   });
 
-  it("Throw error for negative income", async () => {
-    await assert.rejects(
-      calculateBorrowingPower(-120000, 2, 1400, 20000, 7.5),
-      /Inputs cannot be negative/,
-    );
-  });
+  const negativeValues = [
+    { name: "income", values: [-120000, 2, 1400, 20000, 7.5] },
+    { name: "dependents", values: [120000, -2, 1400, 20000, 7.5] },
+    { name: "expenses", values: [120000, 2, -1400, 20000, 7.5] },
+    { name: "credit limits", values: [120000, 2, 1400, -20000, 7.5] },
+    { name: "assessment rate", values: [120000, 2, 1400, 20000, -7.5] },
+  ];
 
-  it("Throw error for negative dependents", async () => {
-    await assert.rejects(
-      calculateBorrowingPower(120000, -2, 1400, 20000, 7.5),
-      /Inputs cannot be negative/,
-    );
-  });
-
-  it("Throw error for negative expenses", async () => {
-    await assert.rejects(
-      calculateBorrowingPower(120000, 2, -1400, 20000, 7.5),
-      /Inputs cannot be negative/,
-    );
-  });
-
-  it("Throw error for negative creditLimits", async () => {
-    await assert.rejects(
-      calculateBorrowingPower(120000, 2, 1400, -20000, 7.5),
-      /Inputs cannot be negative/,
-    );
-  });
-
-  it("Throw error for negative annualAssessmentRate", async () => {
-    await assert.rejects(
-      calculateBorrowingPower(120000, 2, 1400, 20000, -7.5),
-      /Inputs cannot be negative/,
-    );
+  negativeValues.forEach(({ name, values }) => {
+    it(`Throw error for negative ${name}`, async () => {
+      await assert.rejects(
+        calculateBorrowingPower(...values),
+        /Inputs cannot be negative/,
+      );
+    });
   });
 });
 
