@@ -28,18 +28,33 @@ describe("Borrowing Power Tests", () => {
   });
 
   const negativeValues = [
-    { name: "income", values: [-120000, 2, 1400, 20000, 7.5] },
-    { name: "dependents", values: [120000, -2, 1400, 20000, 7.5] },
-    { name: "expenses", values: [120000, 2, -1400, 20000, 7.5] },
-    { name: "credit limits", values: [120000, 2, 1400, -20000, 7.5] },
-    { name: "assessment rate", values: [120000, 2, 1400, 20000, -7.5] },
+    { input: "income", values: [-120000, 2, 1400, 20000, 7.5] },
+    { input: "dependents", values: [120000, -2, 1400, 20000, 7.5] },
+    { input: "expenses", values: [120000, 2, -1400, 20000, 7.5] },
+    { input: "credit limits", values: [120000, 2, 1400, -20000, 7.5] },
+    { input: "assessment rate", values: [120000, 2, 1400, 20000, -7.5] },
   ];
 
-  negativeValues.forEach(({ name, values }) => {
-    it(`throw error for negative ${name}`, async () => {
+  negativeValues.forEach(({ input, values }) => {
+    it(`throw error for negative ${input}`, async () => {
       await assert.rejects(
         calculateBorrowingPower(...values),
-        /Inputs cannot be negative/,
+        /Inputs must be valid and non negative/,
+      );
+    });
+  });
+
+  const invalidValues = [
+    { caseType: "NaN", values: [NaN, 2, 1400, 20000, 7.5] },
+    { caseType: "Infinity", values: [120000, Infinity, 1400, 20000, 7.5] },
+    { caseType: "undefined", values: [120000, 2, undefined, 20000, 7.5] },
+  ];
+
+  invalidValues.forEach(({ caseType, values }) => {
+    it(`throw error for ${caseType}`, async () => {
+      await assert.rejects(
+        calculateBorrowingPower(...values),
+        /Inputs must be valid and non negative/,
       );
     });
   });

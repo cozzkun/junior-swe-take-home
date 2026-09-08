@@ -56,15 +56,20 @@ async function calculateBorrowingPower(
   creditLimits,
   annualAssessmentRate,
 ) {
-  // Reject negative inputs before making API requests
+  // Reject invalid and negative inputs before making API requests
   if (
+    !Number.isFinite(income) ||
+    !Number.isFinite(dependents) ||
+    !Number.isFinite(expenses) ||
+    !Number.isFinite(creditLimits) ||
+    !Number.isFinite(annualAssessmentRate) ||
     income < 0 ||
     dependents < 0 ||
     expenses < 0 ||
     creditLimits < 0 ||
     annualAssessmentRate < 0
   ) {
-    throw new Error("Inputs cannot be negative");
+    throw new Error("Inputs must be valid and non negative");
   }
 
   // 1. Calculate Net Monthly Income after tax deductions
@@ -82,7 +87,7 @@ async function calculateBorrowingPower(
   const maxMonthlyRepayment =
     netMonthlyIncome - totalLivingExpenses - creditCardLiability;
 
-  // Return early if user cannot afford a loan at all
+  // Return 0 if user cannot afford loan
   if (maxMonthlyRepayment <= 0) {
     return { maxLoanAmount: 0, monthlyRepayment: 0 };
   }
