@@ -1,20 +1,19 @@
 /**
  * Borrowing Power Calculator
  *
- * Gen's incomplete prototype.
+ * Cozza's refactored prototype.
  * This currently calculates what a user can borrow over 30 years.
  */
 
 // Global constant for mortgage simulation
-const LOAN_TERM_MONTHS = 360; // 30 Years
-const INTEREST_RATE = 7.0; // 7.0% baseline interest rate
-const ASSESSMENT_RATE_BUFFER = 3.0; // 3.0% buffer added to interest rates
+const LOAN_TERM_MONTHS = 360;
+const INTEREST_RATE = 7.0;
+const ASSESSMENT_RATE_BUFFER = 3.0;
 
-// Storing API address and PAT
 const API_BASE_URL = "http://localhost:3000";
 const PAT = "pat_abcdefghijklmnopqrstuvwxyz0123456789";
 
-//Shared API call function
+// Handles shared API request logic
 async function fetchApiData(url, apiName) {
   const response = await fetch(url, {
     headers: {
@@ -29,7 +28,7 @@ async function fetchApiData(url, apiName) {
   return await response.json();
 }
 
-// Call for getTax and getHEM using shared function
+// Tax and HEM requests using shared API helper
 async function getTax(income) {
   const data = await fetchApiData(
     `${API_BASE_URL}/api/tax?income=${income}`,
@@ -57,7 +56,7 @@ async function calculateBorrowingPower(
   creditLimits,
   annualAssessmentRate,
 ) {
-  // Reject negative values
+  // Reject negative inputs before making API requests
   if (
     income < 0 ||
     dependents < 0 ||
@@ -117,7 +116,6 @@ function runConsoleMode() {
     rl.question("Number of Dependents: ", (dependents) => {
       rl.question("Declared Monthly Expenses: $", (expenses) => {
         rl.question("Total Credit Card Limits: $", async (creditLimits) => {
-          // Banks assess loans using base rate + buffer for safety
           const assessmentRate = INTEREST_RATE + ASSESSMENT_RATE_BUFFER;
 
           try {
