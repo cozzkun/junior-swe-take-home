@@ -67,9 +67,9 @@ async function calculateBorrowingPower(
     dependents < 0 ||
     expenses < 0 ||
     creditLimits < 0 ||
-    annualAssessmentRate < 0
+    annualAssessmentRate <= 0
   ) {
-    throw new Error("Inputs must be valid and non negative");
+    throw new Error("Inputs must be valid");
   }
 
   // 1. Calculate Net Monthly Income after tax deductions

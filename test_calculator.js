@@ -10,7 +10,7 @@ const {
   fetchApiData,
 } = require("./borrowingCalculator");
 
-describe("Operator function is called", () => {
+describe("Orchestrator function is called", () => {
   it("calculate borrowing power for standard value", async () => {
     const result = await calculateBorrowingPower(120000, 2, 1400, 20000, 7.5);
     assert.ok(
@@ -21,7 +21,7 @@ describe("Operator function is called", () => {
     assert.strictEqual(result.maxLoanAmount, 614975.8);
   });
 
-  it("return 0 when there is no borrowing capacity", async () => {
+  it("returns 0 when there is no borrowing capacity", async () => {
     const result = await calculateBorrowingPower(30000, 3, 4000, 5000, 7.5);
     assert.strictEqual(result.maxLoanAmount, 0);
     assert.strictEqual(result.monthlyRepayment, 0);
@@ -36,10 +36,10 @@ describe("Operator function is called", () => {
   ];
 
   negativeValues.forEach(({ input, values }) => {
-    it(`throw an error for negative ${input}`, async () => {
+    it(`throws an error for negative ${input}`, async () => {
       await assert.rejects(
         calculateBorrowingPower(...values),
-        /Inputs must be valid and non negative/,
+        /Inputs must be valid/,
       );
     });
   });
@@ -48,13 +48,14 @@ describe("Operator function is called", () => {
     { caseType: "NaN", values: [NaN, 2, 1400, 20000, 7.5] },
     { caseType: "Infinity", values: [120000, Infinity, 1400, 20000, 7.5] },
     { caseType: "undefined", values: [120000, 2, undefined, 20000, 7.5] },
+    { caseType: "a zero assessment rate", values: [120000, 2, 1400, 20000, 0] },
   ];
 
   invalidValues.forEach(({ caseType, values }) => {
-    it(`throw an error for ${caseType}`, async () => {
+    it(`throws an error for ${caseType}`, async () => {
       await assert.rejects(
         calculateBorrowingPower(...values),
-        /Inputs must be valid and non negative/,
+        /Inputs must be valid/,
       );
     });
   });
