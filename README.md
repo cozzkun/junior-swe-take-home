@@ -1,76 +1,128 @@
 # Borrowing Power Calculator
 
-Hello and thanks so much for taking the time to do the Ferocia Junior Engineering Code Exercise.
+This is a simplified borrowing power calculator written in Javascript.
 
-This borrowing power calculator written in Javascript was started by one of our juniors, Gen (her full name is “Gen A. Eye”), but she she went on leave before she could finish it…
+The prototype used placeholder functions for Tax and HEM. These have been replaces with API calls to the provided local API. The calculator and tests have been updated accordingly to work asynchronously.
 
-We need you to progress the code in her absence. Once you’ve submitted your work and we’ve reviewed it, you’ll sit down and explain the code to Gens team members (our interviewers) in a pairing session.
+The calculator uses:
 
-Keep in mind that we’ll expect you to be able to explain and expand on the code you submit.
+- Annual income
+- Number of dependents
+- Declared monthly expenses
+- Credit card limit
 
-If you haven’t done much Javascript before don’t worry. We’ll take your experience into account, just give it your best shot. 
-
-You can see our online borrowing power calculator (Gens project is simplified so dont expect the number to match perfectly) to see how it work (https://www.bendigobank.com.au/personal/loans/calculators/borrowing-power/).
-
-## Please try to complete the following:
-
-### Replace the two placeholder functions
-The code needs to calculate tax on income and a HEM (Household Expense Measure) value.
-Currently this is performed by placeholder code in the following functions:
-    getTax(income)
-    getHEM(income, dependents)
-You will need to replace the code in both with API calls.
-We have provided a server.js which can you run locally to expose the following 2 development endpoints:
-    http://localhost:3000/api/tax?income=[income]
-    http://localhost:3000/api/hem?income=[income]&dependents=[dependents]
-Both return JSON and require an authentication header with a valid PAT (Personal Access Token), see server.md for full documentation including the development PAT.
-
-### Make it manageable
-Gen planned to pull all the calculator functions into a class so she could extend it later, but we’ll leave it up to you to choose the approach (a well-formed class, an orchestrator function, a factory/closure pattern, or whatever)
-
-### Test coverage
-Of course we’ll need the test suite to pass and have full coverage.
-
-
-
-## Rules:
-
-Use whatever tools and resources help you get the job done. That includes AI, documentation, Stack Overflow, or anything else. What matters is that you understand every line you submit. In the follow-up pairing session, we'll ask you to walk us through your code, explain your decisions, and make changes on the fly - without an AI in Agent mode. If you can't do that confidently, it will count against you. The goal isn't to catch you out, it's to understand how you think.
+Tax and HEM data are returned by the API to calculate repayment capacity and maximum borrowing power.
 
 ## Setup
 
-Make sure you have Node.js installed.
-
-Install dependencies:
-```
+Make sure Node.js is installed and run:
 npm install
-```
 
-## Server
+## Running the API
 
-You wil need to run the development API in it's own terminal window.
-(The server will be available at http://localhost:3000/).
-To start the server run the following command:
-```
+Start the local API in a seperate terminal:
 npm run api
-```
-Note: You can stop the server with Ctrl+C
 
+The server runs at:
+http://localhost:3000
 
-## Running
+The API terminal must be running while using the calculator or running tests.
 
-Run the calculator with:
-```
+## Running the Calculator
+
+In another terminal run:
 npm start
-```
 
+The calculator will ask for income, dependents, monthly expenses and credit card limits before displaying the borrowing power and monthly repayment amount.
 
-## Testing
+## Running the Tests
 
-Run tests with:
-```
+Ensure the API is running, then run:
 npm test
-```
 
+The test suite covers:
 
+- Standard borrowing power calculations
+- No borrowing capacity
+- Negative and invalid inputs
+- HEM values for different income levels and dependent counts
+- Tax values for different income levels
+- Failed Tax and HEM API requests
 
+## Design Decisions
+
+### Orchestrator Function
+
+I have kept the calculator function-based and used `calculateBorrowingPower()` as the main orchestrator.
+
+It handles input validation, retrieves the Tax and HEM values, then perform the borrowing power calculations.
+
+I decidided against introducing a class to keep the overall structure simple and focused on adapting the existing functions that already have defined responsibilities.
+
+### Shared API Helper
+
+`getTax()` and `getHEM()` contain the same API logic request.
+
+The logic flows as follows:
+
+- fetch()
+- PAT authentication
+- Checking response.ok
+- Parsing the JSON response.
+
+I have stored the shared logic using a helper function:
+fetchApiData(url, apiName)
+
+This avoids repeating test logic in `getTax()` and `getHEM()`
+
+### Async + Await
+
+As `getTax()` and `getHEM()` have been changed to make API requests, they are now asynchronous and return Promises which need to be accounted for.
+
+`calculateBorrowingPower()` was also made asynchronous in so it can receive Tax and HEM values before carrying out further calculations.
+
+Existing tests were also adjusted for this.
+
+### Input Validation
+
+User inputs are checked at the start of `calculateBorrowingPower() ` before any API requests are made.
+
+The validation accounts for:
+
+- Negative values
+- NaN
+- Infinity
+- undefined
+
+If the user provides valid inputs but there is no repayment capacity then the calculator will return 0 for both to represent this.
+
+## Testing Approach
+
+Existing tests in test_calculator.js were updated to account for async.
+
+As HEM is calculated using both income level and number of dependents, I stored the expected HEM cases in an array and looped through the array using `forEach()` which creates a seperate test for each combination.
+
+The same method was used negative and invalid inputs which helped with reducing repeated code.
+
+Tax is tested using values across 3 different income levels to ensure tax calculations return the expected value.
+
+The shared API helper is tested by using an invalid endpoint to confirm failed Tax and HEM request would return the expected error.
+
+## Assumptions
+
+- The provided local API is running at http://localhost:3000.
+- The provided PAT is valid.
+- Console inputs are parsed into numbers before being passed into calculations.
+- HEM is treasted as a monthly living expense baseline.
+- Calculator will use the higher value between declared monthly expenses and HEM.
+- Credit card liablility is estimated to be 3% of total credit card limits.
+- Loan term remains at 30 years.
+- The provided borrowing power formula and mortgage assumptions have been kept.
+
+## Tradeoffs
+
+The Tax and HEM tests require the local API instead of mocking `fetch()`.
+
+This means the API must be running for the tests to work. This means that the tests have to successfully pass through the real request flow (authentication, response handling and JSON parsing).
+
+Given my current Javascript knowledge/experience, I have kept the solution function based intead of introducing a class as this implementation kept things simple whilst still ensuring key respnsilbities within the calculator are still seperate.
