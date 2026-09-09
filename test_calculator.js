@@ -10,8 +10,8 @@ const {
   fetchApiData,
 } = require("./borrowingCalculator");
 
-describe("Orchestrator function is called", () => {
-  it("calculate borrowing power for standard value", async () => {
+describe("Borrowing power calculation", () => {
+  it("calculates borrowing power for standard value", async () => {
     const result = await calculateBorrowingPower(120000, 2, 1400, 20000, 7.5);
     assert.ok(
       result.maxLoanAmount > 0,
@@ -50,7 +50,7 @@ describe("Orchestrator function is called", () => {
     { caseType: "undefined", values: [120000, 2, undefined, 20000, 7.5] },
     { caseType: "a zero assessment rate", values: [120000, 2, 1400, 20000, 0] },
     {
-      caseType: "non integer dependant value",
+      caseType: "non integer dependent value",
       values: [120000, 1.5, 1400, 20000, 7.5],
     },
   ];
@@ -110,14 +110,14 @@ describe("Tax API call", () => {
 });
 
 describe("API request fails", () => {
-  it("rejects with an error", async () => {
+  it("rejects when HEM API request fails", async () => {
     await assert.rejects(
       fetchApiData("http://localhost:3000/api/fake", "HEM"),
       /HEM API request failed/,
     );
   });
 
-  it("rejects with an error", async () => {
+  it("rejects when Tax API request fails", async () => {
     await assert.rejects(
       fetchApiData("http://localhost:3000/api/fake", "Tax"),
       /Tax API request failed/,
