@@ -60,6 +60,7 @@ async function calculateBorrowingPower(
   if (
     !Number.isFinite(income) ||
     !Number.isFinite(dependents) ||
+    !Number.isInteger(dependents) ||
     !Number.isFinite(expenses) ||
     !Number.isFinite(creditLimits) ||
     !Number.isFinite(annualAssessmentRate) ||
@@ -126,7 +127,7 @@ function runConsoleMode() {
           try {
             const result = await calculateBorrowingPower(
               parseFloat(income),
-              parseInt(dependents),
+              parseFloat(dependents),
               parseFloat(expenses),
               parseFloat(creditLimits),
               assessmentRate,

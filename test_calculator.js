@@ -49,6 +49,10 @@ describe("Orchestrator function is called", () => {
     { caseType: "Infinity", values: [120000, Infinity, 1400, 20000, 7.5] },
     { caseType: "undefined", values: [120000, 2, undefined, 20000, 7.5] },
     { caseType: "a zero assessment rate", values: [120000, 2, 1400, 20000, 0] },
+    {
+      caseType: "non integer dependant value",
+      values: [120000, 1.5, 1400, 20000, 7.5],
+    },
   ];
 
   invalidValues.forEach(({ caseType, values }) => {
